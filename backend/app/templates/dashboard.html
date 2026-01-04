@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+  {% include 'topbar.html' %}
+  {% include 'charts-grid.html' %}
+  {% include 'shared-ui.html' %}
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{{ url_for('static', filename='js/auth.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/charts.js') }}"></script>
+
+<script type="module">
+  import { updateSessionExpiry, redirectToLogin } from "{{ url_for('static', filename='js/auth.js') }}";
+
+  document.addEventListener("DOMContentLoaded", () => {
+    fetch("/api/admin/profile", {
+      method: "GET",
+      credentials: "include"
+    })
+    .then(res => {
+      if (!res.ok) throw new Error("Unauthorized");
+      return res.json();
+    })
+    .then(data => {
+      document.getElementById("adminName").textContent = data.full_name || "Admin";
+
+      // Optionally: fetch token expiry info from server, if your API supports it
+      fetch("/token-expiry", { credentials: "include" })
+        .then(r => r.json())
+        .then(expiryData => {
+          updateSessionExpiry(expiryData);
+        })
+        .catch(() => {
+          console.warn("Could not fetch token expiry info");
+        });
+    })
+    .catch(() => {
+      alert("Session expired. Please log in again.");
+      redirectToLogin();
+    });
+  });
+
+  async function refreshAccessToken() {
+    try {
+      const res = await fetch("/refresh", {
+        method: "POST",
+        credentials: "include"
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        console.log("🔁 Token refreshed");
+        updateSessionExpiry(data);  // Update expiry timers here!
+      } else {
+        console.warn("⚠️ Refresh failed. Logging out.");
+        redirectToLogin();
+      }
+    } catch (error) {
+      console.error("Error refreshing token:", error);
+      redirectToLogin();
+    }
+  }
+
+  setInterval(refreshAccessToken, 270000); // Refresh every 4.5 minutes
+</script>
+{% endblock %}

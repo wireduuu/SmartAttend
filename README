@@ -1,0 +1,131 @@
+What is GeoPresence?
+
+GeoPresence is a smart, location-aware attendance and session management system designed to eliminate fake attendance (ghost names) in academic environments.
+
+At its core, it answers one question reliably:
+
+“Was this student physically present, at this place, at this time?”
+
+The Problem GeoPresence Solves
+
+Traditional attendance systems fail because:
+
+Students sign for absent friends
+
+Attendance sheets are reused
+
+Online forms can be filled from anywhere
+
+Lecturers waste time validating records
+
+GeoPresence fixes this by binding attendance to location, time, and identity.
+
+What GeoPresence Does (Plain Terms)
+1. Secure Session-Based Attendance
+
+Lecturers create a session (class, lab, exam, seminar).
+
+A unique session code is generated
+
+The session has:
+
+A time window
+
+A geo-fence (location radius)
+
+Students can only mark attendance:
+
+During the session time
+
+Within the allowed location radius
+
+Using their verified identity
+
+2. Geo-Verified Student Presence
+
+Students must:
+
+Enter their index number and email
+
+Be physically near the lecture venue
+
+Submit within the active session window
+
+This prevents:
+
+Remote sign-ins
+
+Shared links
+
+Proxy attendance
+
+3. Admin / Lecturer Dashboard
+
+Lecturers and course reps can:
+
+Create and manage courses
+
+Start and stop attendance sessions
+
+View live attendance counts
+
+Export attendance records (CSV / PDF)
+
+Detect anomalies (late sign-ins, duplicates)
+
+4. Clean, Auditable Records
+
+Every attendance record stores:
+
+Student identity
+
+Course
+
+Session ID
+
+Timestamp
+
+Location metadata
+
+This creates:
+
+Trustworthy academic records
+
+Audit-ready data for departments
+
+Who GeoPresence Is For
+🎓 Primary Users
+
+Lecturers
+
+Teaching Assistants
+
+Course Representatives
+
+🏫 Institutions
+
+Universities
+
+Technical schools
+
+Colleges
+
+Training centers
+
+What GeoPresence Is Not
+
+To avoid confusion:
+
+❌ Not a generic student portal
+
+❌ Not just a QR scanner
+
+❌ Not a Google Form clone
+
+❌ Not a social app
+
+GeoPresence is infrastructure, not content.
+
+One-Sentence Definition (You’ll Use This Everywhere)
+
+GeoPresence is a geo-verified attendance system that ensures students are physically present before attendance is recorded.

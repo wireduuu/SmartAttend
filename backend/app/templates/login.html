@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GeoPresence Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 1rem;
+    position: relative;
+    overflow: hidden;
+    background-color: #f2f2f2;
+  }
+
+  /* Background image */
+  body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url('../static/images/2.jpg') no-repeat center center;
+    background-size: cover;
+    z-index: -2;
+  }
+
+  /* Gradient overlay */
+  body::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.05));
+    z-index: -1;
+  }
+
+  .login-container {
+    background-color: rgba(255, 255, 255, 0.96);
+    padding: 3rem 2rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 520px;
+    min-height: 500px; /* NEW: sets minimum height */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* centers content vertically */
+    margin-right: 5%;
+    animation: slideIn 0.6s ease forwards;
+    z-index: 1;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  h2 {
+    margin-bottom: 1.5rem;
+    color: #333;
+    font-weight: 600;
+    text-align: center;
+    font-size: 1.8rem;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #333;
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+
+ input[type="email"],
+  input[type="password"],
+  input[type="text"] {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+  }
+
+  input:focus {
+    border-color: #0a5cff;
+    outline: none;
+  }
+
+  .input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .input-wrapper input {
+    padding-right: 40px;
+  }
+
+  .toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-100%);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .toggle-password svg {
+    width: 20px;
+    height: 20px;
+    fill: #555;
+  }
+
+  .options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    color: #444;
+  }
+
+  .options a {
+    text-decoration: none;
+    color: #0a5cff;
+    font-weight: 500;
+  }
+
+  .options a:hover {
+    text-decoration: underline;
+  }
+
+  .remember-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+
+  button {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #0a5cff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+  }
+
+  button:hover {
+    background-color: #004bcb;
+  }
+
+  .register {
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: #555;
+  }
+
+  .register a {
+    color: #0a5cff;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .register a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    body {
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .login-container {
+      margin-right: 0;
+    }
+
+    body::after {
+      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0));
+    }
+  }
+
+  .error {
+    color: red;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    text-align: center;
+  }
+</style>
+</head>
+
+<body>
+    <div class="login-container">
+      <h2>GeoPresence Login</h2>
+      <form id="loginForm">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="eg: geopresence@example.com" name="email" required>
+
+        <div class="form-group password-group">
+          <label for="password">Password</label>
+          <div class="input-wrapper">
+            <input type="password" id="password" placeholder="Password" name="password" />
+            <span class="toggle-password" onclick="togglePassword()" aria-label="Toggle password visibility">
+              <!-- Eye SVG icon -->
+              <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 24 24">
+                <!-- Open Eye -->
+                <path class="eye-open" d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 
+                    10-7-3-7-10-7zm0 12c-2.8 0-5-2.2-5-5s2.2-5 
+                    5-5 5 2.2 5 5-2.2 5-5 5zm0-8c-1.7 0-3 1.3-3 
+                    3s1.3 3 3 3 3-1.3 3-3-1.3-3-3-3z"/>
+                <!-- Closed Eye -->
+                <path class="eye-closed" style="display:none;" d="M1 12s3-7 11-7 11 7 
+                    11 7-3 7-11 7S1 12 1 12zm11-5c-2.8 
+                    0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5z"/>
+              </svg>
+            </span>
+          </div>
+        </div>
+
+        <div class="options">
+          <label class="remember-label"><input type="checkbox" /> Remember Me</label>
+          <a href="forgotpassword.html">Forgot Password?</a>
+        </div>
+
+        <button type="submit" id="submitBtn">Login</button>
+
+        <div class="register">
+          Don't have an account? <a href="register.html">Register</a>
+        </div>
+      </form>
+      <p class="error" id="errorMsg"></p>
+    </div>
+
+    <script>
+      function togglePassword() {
+        const input = document.getElementById("password");
+        const icon = document.getElementById("eyeIcon");
+        const openEye = icon.querySelector(".eye-open");
+        const closedEye = icon.querySelector(".eye-closed");
+
+        if (input.type === "password") {
+          input.type = "text";
+          openEye.style.display = "none";
+          closedEye.style.display = "block";
+        } else {
+          input.type = "password";
+          openEye.style.display = "block";
+          closedEye.style.display = "none";
+        }
+      }
+    </script>
+    <script>
+    const loginForm = document.getElementById('loginForm');
+    const errorMsg = document.getElementById('errorMsg');
+    const submitBtn = document.getElementById('submitBtn');
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorMsg.textContent = "";
+      submitBtn.disabled = true;
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      try {
+        const res = await fetch("/login", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',  // ✅ allow cookies to be sent with request
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          errorMsg.textContent = data.error || "Login failed.";
+          submitBtn.disabled = false;
+          return;
+        }
+
+        // ✅ Redirect to dashboard — token is already set as a cookie by the server
+        window.location.href = "/dashboard";
+
+      } catch (err) {
+        console.error(err);
+        errorMsg.textContent = "Something went wrong. Try again.";
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+  </body>
+</html>

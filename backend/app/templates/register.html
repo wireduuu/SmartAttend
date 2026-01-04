@@ -1,0 +1,41 @@
+<!-- templates/register.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Signup - GeoPresence</title>
+</head>
+<body>
+  <h2>Admin Registration</h2>
+  <form id="registerForm">
+    <input type="text" placeholder="Full Name" id="name" required /><br>
+    <input type="email" placeholder="Email" id="email" required /><br>
+    <input type="password" placeholder="Password" id="password" required /><br>
+    <button type="submit">Register</button>
+  </form>
+
+  <script>
+    document.getElementById("registerForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const data = {
+        full_name: document.getElementById("name").value,
+        email: document.getElementById("email").value,
+        password: document.getElementById("password").value
+      };
+
+      const res = await fetch("/api/admin/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json();
+      alert(result.message || result.error);
+
+      if (res.ok) window.location.href = "/login.html";
+    });
+  </script>
+</body>
+</html>

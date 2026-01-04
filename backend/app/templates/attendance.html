@@ -1,0 +1,41 @@
+<!-- attendance.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+
+<section id="attendanceTab" class="tab-content active">
+  <div class="attendance-filters">
+    <select id="filterByCourse" aria-label="Filter by course">
+      <option value="">Select Course</option>
+      <!-- Dynamically populated -->
+    </select>
+    <select id="filterBySession" aria-label="Filter by session">
+      <option value="">Select Session</option>
+      <!-- Dynamically populated -->
+    </select>
+    <input type="text" id="filterByIndex" placeholder="Student Index Number" aria-label="Filter by student index number" />
+    <button id="fetchAttendanceBtn" type="button">Fetch Attendance</button>
+    <button id="exportAttendanceBtn" type="button">Export Attendance</button>
+  </div>
+
+  <table id="attendanceTable" role="grid" aria-label="Attendance Records">
+    <thead>
+      <tr>
+        <th scope="col">Student</th>
+        <th scope="col">Session ID</th>
+        <th scope="col">Status</th>
+        <th scope="col">Timestamp</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Populated dynamically -->
+    </tbody>
+  </table>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{{ url_for('static', filename='js/attendance.js') }}"></script>
+{% endblock %}

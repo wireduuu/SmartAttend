@@ -1,0 +1,51 @@
+<header class="topbar">
+  <div class="topbar-left">
+    <button class="menu-btn" onclick="toggleSidebar()">
+      <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+        <path
+          d="M4 6h16M4 12h16M4 18h16"
+          stroke="#fff"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+      </svg>
+    </button>
+
+    <div class="topbar-title">
+      <span class="logo-icon" aria-hidden="true">
+        <svg
+          width="24"
+          height="24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          viewBox="0 0 24 24"
+        >
+          <rect x="3" y="12" width="4" height="8" />
+          <rect x="10" y="8" width="4" height="12" />
+          <rect x="17" y="4" width="4" height="16" />
+        </svg>
+      </span>
+      <div>
+        <h2>Welcome, <span id="adminName">Admin</span></h2>
+        <p>Manage your courses, sessions & attendance</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="theme-toggle">
+    <input type="checkbox" id="themeSwitch" />
+    <label for="themeSwitch" class="theme-label" aria-hidden="true">
+      <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+        <path
+          d="M21 12.79A9 9 0 0 1 11.21 3 7 7 0 0 0 12 21a9 9 0 0 1 9-8.21z"
+        />
+      </svg>
+      <span class="visually-hidden">Dark Mode</span>
+    </label>
+  </div>
+
+  <button onclick="logout()">Logout</button>
+</header>

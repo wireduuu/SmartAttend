@@ -1,0 +1,51 @@
+<!-- charts-grid.html -->
+
+<div class="charts-grid">
+  
+  <!-- Bar Chart: Attendance Summary -->
+  <div class="chart-box">
+    <h3>Weekly Attendance Summary</h3>
+    <div id="attendanceBarChart" style="height: 240px;"></div>
+  </div>
+
+  <!-- Donut Chart: Course Department/Semester/Lecturer -->
+  <div class="chart-box">
+    
+    <!-- Chart Header with Dropdown -->
+    <div class="chart-header">
+      <h3>Courses Overview</h3>
+      <div class="chart-dropdown">
+        <select id="statType">
+          <option value="department">Department</option>
+          <option value="semester">Semester</option>
+          <option value="lecturer">Lecturer</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Donut Chart Container -->
+    <div id="courseDonutChart" style="height: 240px; position: relative;">
+      <div id="donutCenterLabel" class="donut-center-label"></div>
+    </div>
+
+    <!-- Legend & Controls -->
+    <div class="legend-row">
+      
+      <!-- Chart Legend -->
+      <div id="courseDonutLegend" class="chart-legend"></div>
+
+      <!-- Export & Count -->
+      <div class="legend-controls">
+        <button id="exportDonutBtn" class="icon-btn" title="Export PDF">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
+               viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
+            <path d="M7 10l5-5 5 5M12 5v12" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <p id="donutTotalCount" class="donut-total-count"></p>
+      </div>
+
+    </div>
+  </div>
+</div>

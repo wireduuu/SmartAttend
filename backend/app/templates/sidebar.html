@@ -1,0 +1,44 @@
+<aside class="sidebar" id="sidebar">
+  <div class="logo" aria-label="GeoPresence">
+    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+      <path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20" />
+      <path d="M20 2H6.5A2.5 2.5 0 0 0 4 4.5v15" />
+      <path d="M16 2v4" />
+      <path d="M8 2v4" />
+    </svg>
+    <span>GeoPresence</span>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse()">
+    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M15 18l-6-6 6-6" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+
+  <nav class="nav">
+    <a href="/dashboard" class="nav-link">
+      <i class="fas fa-home"></i>
+      <span>Dashboard</span>
+    </a>
+
+    <a href="/courses" class="nav-link">
+      <i class="fas fa-book"></i>
+      <span>Courses</span>
+    </a>
+
+    <a href="/attendance" class="nav-link">
+      <i class="fas fa-user-check"></i>
+      <span>Attendance</span>
+    </a>
+
+    <a href="/sessions" class="nav-link">
+      <i class="fas fa-clock"></i>
+      <span>Sessions</span>
+    </a>
+  </nav>
+</aside>
+
+<!-- Backdrop for mobile -->
+<div class="sidebar-backdrop" onclick="closeSidebar()"></div>
