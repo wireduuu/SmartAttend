@@ -5,7 +5,8 @@ import "./styles/index.css";
 import App from "./app/App";
 import { initTheme } from "./utils/theme";
 import { AuthProvider } from "./providers/AuthProvider";
-import SessionWarning from "./components/ui/CountdownToast";
+import CountdownToast from "./components/ui/CountdownToast";
+import { Toaster } from "sonner";
 
 initTheme();
 
@@ -14,7 +15,8 @@ createRoot(document.getElementById("root")!).render(
     <AuthProvider>
       <BrowserRouter>
         <App />
-        <SessionWarning />
+        <CountdownToast />
+        <Toaster richColors position="top-right" />
       </BrowserRouter>
     </AuthProvider>
   </StrictMode>

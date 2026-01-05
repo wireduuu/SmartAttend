@@ -50,7 +50,7 @@ export default function CountdownToast() {
   if (seconds <= 0) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 card w-80 p-4 shadow-lg bg-white dark:bg-gray-800">
+    <div className="fixed top-20 right-4 card w-fit p-4 shadow-lg bg-white dark:bg-gray-800 flex items-center gap-4">
       <p className="text-sm">
         Session expires in{" "}
         <b>
@@ -64,7 +64,7 @@ export default function CountdownToast() {
             : sessionStorage;
           if (storage.getItem("refresh_token")) extendSession();
         }}
-        className="btn-primary mt-3 w-full"
+        className="btn-primary"
       >
         Extend Session
       </button>
