@@ -1,3 +1,4 @@
+import axios from "axios";
 import api from "./api";
 
 /* =======================
@@ -17,13 +18,13 @@ export interface User {
 interface LoginResponse {
   access_token: string;
   refresh_token: string;
-  access_exp: number;
+  access_exp: number; // timestamp in seconds
   user: User;
 }
 
 interface RefreshResponse {
   access_token: string;
-  expires_at: number;
+  expires_at: number; // timestamp in ms
 }
 
 interface RegisterResponse {
@@ -35,13 +36,12 @@ interface RegisterResponse {
 ======================= */
 
 // Login
-export const login = async (
-  payload: LoginPayload
-): Promise<LoginResponse> => {
-  const res = await api.post<LoginResponse>("/login", payload, {
-    baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:5000",
-    withCredentials: true,
-  });
+export const login = async (payload: LoginPayload): Promise<LoginResponse> => {
+  const res = await api.post<LoginResponse>(
+    "/login",
+    payload,
+    { baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:5000" }
+  );
 
   return res.data;
 };
@@ -52,10 +52,11 @@ export const register = async (payload: {
   email: string;
   password: string;
 }): Promise<RegisterResponse> => {
-  const res = await api.post<RegisterResponse>("/register", payload, {
-    baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:5000",
-    withCredentials: true,
-  });
+  const res = await api.post<RegisterResponse>(
+    "/register",
+    payload,
+    { baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:5000" }
+  );
 
   return res.data;
 };
@@ -65,10 +66,7 @@ export const logout = async (): Promise<void> => {
   await api.post(
     "/logout",
     null,
-    {
-      baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:5000",
-      withCredentials: true,
-    }
+    { baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:5000" }
   );
 };
 
@@ -76,37 +74,32 @@ export const logout = async (): Promise<void> => {
    SESSION MANAGEMENT
 ======================= */
 
-// Restore session
+// Get current user profile
 export const getProfile = async (): Promise<User> => {
-  const res = await api.get<User>("/profile", {
-    baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:5000",
-    withCredentials: true,
-  });
-
+  const res = await api.get<User>("/profile");
   return res.data;
 };
 
-// Extend session
+
+// Refresh access token
 export const refreshToken = async (): Promise<RefreshResponse> => {
-  const refreshToken =
-    localStorage.getItem("refresh_token") ||
-    sessionStorage.getItem("refresh_token");
+  const storage =
+    localStorage.getItem("refresh_token") ? localStorage : sessionStorage;
 
-  if (!refreshToken) {
-    throw new Error("No refresh token found");
-  }
+  const refresh_token = storage.getItem("refresh_token");
+  if (!refresh_token) throw new Error("No refresh token");
 
-  const res = await api.post<RefreshResponse>(
-    "/refresh",
-    null,
+  // Make a request WITHOUT Axios interceptors messing with headers
+  const res = await axios.post<RefreshResponse>(
+    `${import.meta.env.VITE_API_URL || "http://127.0.0.1:5000"}/refresh`,
+    {}, // empty body
     {
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${refresh_token}`, // <-- only refresh token
       },
-      baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:5000",
     }
   );
 
   return res.data;
 };
-

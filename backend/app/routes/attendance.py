@@ -87,7 +87,7 @@ def mark_attendance():
 @attendance_bp.route("/by-session/<int:session_id>", methods=["GET"])
 @jwt_required()
 def view_attendance_by_session(session_id):
-    admin_id = get_jwt_identity()
+    admin_id = int(get_jwt_identity())
     session = SessionCode.query.get_or_404(session_id)
     course = Course.query.get(session.course_id)
 
@@ -109,7 +109,7 @@ def view_attendance_by_session(session_id):
 @attendance_bp.route("/course/<int:course_id>", methods=["GET"])
 @jwt_required()
 def get_attendance_by_course(course_id):
-    admin_id = get_jwt_identity()
+    admin_id = int(get_jwt_identity())
     course = Course.query.get_or_404(course_id)
 
     if not has_course_access(course, admin_id, allow_reps=True):
@@ -137,7 +137,7 @@ def get_attendance_by_course(course_id):
 @attendance_bp.route("/<int:session_id>", methods=["GET"])
 @jwt_required()
 def get_attendance_for_session(session_id):
-    admin_id = get_jwt_identity()
+    admin_id = int(get_jwt_identity())
     session = SessionCode.query.get_or_404(session_id)
     course = Course.query.get(session.course_id)
 
@@ -160,7 +160,7 @@ def get_attendance_for_session(session_id):
 @attendance_bp.route("/student/<string:index_number>", methods=["GET"])
 @jwt_required()
 def get_attendance_for_student(index_number):
-    admin_id = get_jwt_identity()
+    admin_id = int(get_jwt_identity())
 
     accessible_ids = (
         db.session.query(Course.id)
@@ -198,7 +198,7 @@ def get_attendance_for_student(index_number):
 @attendance_bp.route("/delete/<int:id>", methods=["DELETE"])
 @jwt_required()
 def delete_attendance(id):
-    admin_id = get_jwt_identity()
+    admin_id = int(get_jwt_identity())
     record = Attendance.query.get_or_404(id)
     course = Course.query.get(SessionCode.query.get(record.session_id).course_id)
 
@@ -213,7 +213,7 @@ def delete_attendance(id):
 @attendance_bp.route("/delete/by-session/<int:session_id>", methods=["DELETE"])
 @jwt_required()
 def delete_attendance_by_session(session_id):
-    admin_id = get_jwt_identity()
+    admin_id = int(get_jwt_identity())
     session = SessionCode.query.get_or_404(session_id)
     course = Course.query.get(session.course_id)
 
@@ -229,7 +229,7 @@ def delete_attendance_by_session(session_id):
 @attendance_bp.route("/filter", methods=["GET"])
 @jwt_required()
 def filter_attendance():
-    admin_id = get_jwt_identity()
+    admin_id = int(get_jwt_identity())
     from_date = request.args.get("from")
     to_date = request.args.get("to")
     course_id = request.args.get("course_id")
@@ -281,7 +281,7 @@ def filter_attendance():
 @attendance_bp.route("/export", methods=["GET"])
 @jwt_required()
 def export_attendance_csv():
-    admin_id = get_jwt_identity()
+    admin_id = int(get_jwt_identity())
     course_id = request.args.get("course_id")
 
     query = (

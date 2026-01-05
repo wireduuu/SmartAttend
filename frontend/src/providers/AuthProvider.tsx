@@ -15,9 +15,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const expiryTimeout = useRef<number | null>(null);
   const warningTimeout = useRef<number | null>(null);
 
-  /* --------------------------------
-     Bootstrap session on app load
-  -------------------------------- */
+  /* -------------------------
+     Clear timers helper
+  ------------------------- */
+  const clearTimers = () => {
+    if (expiryTimeout.current) {
+      clearTimeout(expiryTimeout.current);
+      expiryTimeout.current = null;
+    }
+    if (warningTimeout.current) {
+      clearTimeout(warningTimeout.current);
+      warningTimeout.current = null;
+    }
+  };
+
+  /* -------------------------
+     Bootstrap session
+  ------------------------- */
   useEffect(() => {
     async function bootstrap() {
       try {
@@ -25,17 +39,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           localStorage.getItem("expires_at") ||
           sessionStorage.getItem("expires_at");
 
-        const expiresAt = Number(expiresRaw);
+        if (!expiresRaw) throw new Error("No session found");
 
-        if (!expiresAt || isNaN(expiresAt)) {
-          throw new Error("Invalid session");
+        const expiresAtSec = Number(expiresRaw);
+        if (isNaN(expiresAtSec)) throw new Error("Invalid expiry timestamp");
+
+        scheduleSession(expiresAtSec * 1000);
+
+        try {
+          const profile = await getProfile();
+          setUser(profile);
+        } catch {
+          // try refreshing token if profile fetch fails
+          await extendSession();
+          const profile = await getProfile();
+          setUser(profile);
         }
-
-        const profile = await getProfile();
-        setUser(profile);
-
-        scheduleSession(Number(expiresAt) * 1000);
-        console.log("expiresAt from storage: ", expiresAt);
       } catch {
         clearAuth();
       } finally {
@@ -47,71 +66,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return clearTimers;
   }, []);
 
-  /* --------------------------------
-     Session timing logic
-  -------------------------------- */
-  const clearTimers = () => {
-    console.log("Clearing timers...");
-
-    if (expiryTimeout.current) {
-      console.log("⏰ Expiry timer cleared");
-      clearTimeout(expiryTimeout.current);
-      expiryTimeout.current = null;
-    }
-
-    if (warningTimeout.current) {
-      console.log("🔔 Warning timer cleared");
-      clearTimeout(warningTimeout.current);
-      warningTimeout.current = null;
-    }
-
-    console.log("User logged out or session reset.");
-  };
-
-  const scheduleSession = (expiresAt: number) => {
+  /* -------------------------
+     Schedule session warning & expiry
+  ------------------------- */
+  const scheduleSession = (expiresAtMs: number) => {
     clearTimers();
 
     const now = Date.now();
-    const timeLeft = expiresAt - now;
-
-    console.log("Current time (ms):", now);
-    console.log("Token expires at (ms):", expiresAt);
-    console.log("Time left (ms):", timeLeft);
+    const timeLeft = expiresAtMs - now;
 
     if (timeLeft <= 0) {
-      console.log("Token already expired. Logging out...");
-      logout();
-      // The above logs will persist even after logout
+      // Token already expired
+      logout(); // auto-logout
       return;
     }
 
+    // Warning 10 seconds before expiry
     const warningTime = Math.max(timeLeft - 10 * 1000, 0);
-    console.log("Warning will fire in (ms):", warningTime);
-
     warningTimeout.current = window.setTimeout(() => {
-      console.log("🔥 Dispatching session-warning event");
       window.dispatchEvent(new Event("session-warning"));
     }, warningTime);
 
+    // Expiry handler
     expiryTimeout.current = window.setTimeout(() => {
-      console.log("⛔ Token expired. Logging out...");
+      // If user did not click "Extend", log them out
       logout();
     }, timeLeft);
   };
 
-  /* --------------------------------
+  /* -------------------------
      Auth actions
-  -------------------------------- */
+  ------------------------- */
   const login = async (
     email: string,
     password: string,
     rememberMe: boolean
   ) => {
     const data = await loginRequest({ email, password });
-
     const storage = rememberMe ? localStorage : sessionStorage;
-    localStorage.clear();
-    sessionStorage.clear();
+
+    // Clear old tokens
+    ["access_token", "refresh_token", "expires_at", "user"].forEach((key) => {
+      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
+    });
 
     storage.setItem("access_token", data.access_token);
     storage.setItem("refresh_token", data.refresh_token);
@@ -122,10 +120,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     scheduleSession(data.access_exp * 1000);
   };
 
-  const extendSession = async () => {
+  const extendSession = async (): Promise<void> => {
     try {
       const data = await refreshToken();
-
       const storage = localStorage.getItem("refresh_token")
         ? localStorage
         : sessionStorage;
@@ -134,42 +131,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       storage.setItem("expires_at", String(data.expires_at));
 
       scheduleSession(data.expires_at * 1000);
+      window.dispatchEvent(new Event("session-extended"));
     } catch {
-      logout();
+      clearAuth();
     }
-    window.dispatchEvent(new Event("session-extended"));
   };
 
-  const register = async (
-    fullName: string,
-    email: string,
-    password: string
-  ) => {
-    return registerRequest({
-      full_name: fullName,
-      email,
-      password,
-    });
-  };
+  const register = async (fullName: string, email: string, password: string) =>
+    registerRequest({ full_name: fullName, email, password });
 
   const logout = async () => {
     try {
       await logoutRequest();
-    } catch (err) {
-      // ignore 
-      console.warn("Logout request failed (likely token expired)")
+    } catch {
+      // Ignore errors from expired token
     }
     clearAuth();
   };
 
-  /* --------------------------------
-     Helpers
-  -------------------------------- */
+  // clear auth
   const clearAuth = () => {
     clearTimers();
-    localStorage.clear();
-    sessionStorage.clear();
+    ["access_token", "refresh_token", "expires_at", "user"].forEach((key) => {
+      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
+    });
     setUser(null);
+    window.dispatchEvent(new Event("session-extended")); // hide countdown if open
   };
 
   return (

@@ -13,7 +13,7 @@ dashboard_bp = Blueprint("dashboard_bp", __name__, url_prefix="/dashboard")
 @dashboard_bp.route("/summary", methods=["GET"])
 @jwt_required()
 def dashboard_summary():
-    admin_id = get_jwt_identity()
+    admin_id = int(get_jwt_identity())
 
     accessible_courses = (
         db.session.query(Course.id)
@@ -60,7 +60,7 @@ def dashboard_summary():
 @dashboard_bp.route("/attendance-trend", methods=["GET"])
 @jwt_required()
 def attendance_trend():
-    admin_id = get_jwt_identity()
+    admin_id = int(get_jwt_identity())
     days = int(request.args.get("days", 7))
     start_date = datetime.utcnow() - timedelta(days=days)
 
@@ -95,7 +95,7 @@ def attendance_trend():
 @dashboard_bp.route("/course-summary/<int:course_id>", methods=["GET"])
 @jwt_required()
 def course_summary(course_id):
-    admin_id = get_jwt_identity()
+    admin_id = int(get_jwt_identity())
     course = Course.query.get_or_404(course_id)
 
     if not has_course_access(course, admin_id, allow_reps=True):
@@ -134,7 +134,7 @@ def course_summary(course_id):
 @dashboard_bp.route("/top-students/<int:course_id>", methods=["GET"])
 @jwt_required()
 def top_students(course_id):
-    admin_id = get_jwt_identity()
+    admin_id = int(get_jwt_identity())
     limit = int(request.args.get("limit", 10))
     course = Course.query.get_or_404(course_id)
 
@@ -164,7 +164,7 @@ def top_students(course_id):
 @dashboard_bp.route("/geo-insights/<int:course_id>", methods=["GET"])
 @jwt_required()
 def geo_attendance_insights(course_id):
-    admin_id = get_jwt_identity()
+    admin_id = int(get_jwt_identity())
     course = Course.query.get_or_404(course_id)
 
     if not has_course_access(course, admin_id, allow_reps=True):
@@ -201,7 +201,7 @@ def geo_attendance_insights(course_id):
 @dashboard_bp.route("/course-dashboard/<int:course_id>", methods=["GET"])
 @jwt_required()
 def course_dashboard(course_id):
-    admin_id = get_jwt_identity()
+    admin_id = int(get_jwt_identity())
     course = Course.query.get_or_404(course_id)
 
     if not has_course_access(course, admin_id, allow_reps=True):

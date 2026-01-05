@@ -64,9 +64,11 @@ def login():
         "JWT_REFRESH_TOKEN_EXPIRES", timedelta(days=1)
     )
 
-    access_token = create_access_token(identity=user.id, expires_delta=access_exp_delta)
+    access_token = create_access_token(
+        identity=str(user.id), expires_delta=access_exp_delta
+    )
     refresh_token = create_refresh_token(
-        identity=user.id, expires_delta=refresh_exp_delta
+        identity=str(user.id), expires_delta=refresh_exp_delta
     )
     now = datetime.now(timezone.utc)
 
@@ -95,18 +97,21 @@ def login():
 @auth_bp.route("/refresh", methods=["POST"])
 @jwt_required(refresh=True)
 def refresh():
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
+
     access_exp_delta = current_app.config.get(
         "JWT_ACCESS_TOKEN_EXPIRES", timedelta(minutes=2)
     )
+
     new_access_token = create_access_token(
-        identity=user_id, expires_delta=access_exp_delta
+        identity=str(user_id), expires_delta=access_exp_delta
     )
+
     access_exp_unix = int((datetime.now(timezone.utc) + access_exp_delta).timestamp())
+
     return (
         jsonify(
             {
-                "message": "Token refreshed",
                 "access_token": new_access_token,
                 "expires_at": access_exp_unix,
             }
@@ -130,7 +135,7 @@ def logout():
 @auth_bp.route("/profile", methods=["GET"])
 @jwt_required()
 def profile():
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     user = Admin.query.get(user_id)
 
     if not user:

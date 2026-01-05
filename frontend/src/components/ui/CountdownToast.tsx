@@ -1,46 +1,71 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 
-export default function SessionWarning() {
-  const { extendSession } = useAuth();
-  const [seconds, setSeconds] = useState(30);
+export default function CountdownToast() {
+  const { extendSession, user } = useAuth();
+  const [seconds, setSeconds] = useState(0);
 
+  /* -------------------------
+     Show countdown on session warning
+  ------------------------- */
   useEffect(() => {
-    const show = () => setSeconds(10);
-    window.addEventListener("session-warning", show);
+    if (!user) return;
 
-    return () => window.removeEventListener("session-warning", show);
+    const showCountdown = () => {
+      const expiresRaw =
+        localStorage.getItem("expires_at") ||
+        sessionStorage.getItem("expires_at");
+      if (!expiresRaw) return;
+
+      const expiresAtMs = Number(expiresRaw) * 1000;
+      const timeLeftSec = Math.max(
+        Math.floor((expiresAtMs - Date.now()) / 1000),
+        0
+      );
+      setSeconds(timeLeftSec);
+    };
+
+    window.addEventListener("session-warning", showCountdown);
+    return () => window.removeEventListener("session-warning", showCountdown);
+  }, [user]);
+
+  /* -------------------------
+     Hide countdown on session extend
+  ------------------------- */
+  useEffect(() => {
+    const hideCountdown = () => setSeconds(0);
+    window.addEventListener("session-extended", hideCountdown);
+    return () => window.removeEventListener("session-extended", hideCountdown);
   }, []);
 
+  /* -------------------------
+     Countdown interval
+  ------------------------- */
   useEffect(() => {
-    const hide = () => setSeconds(0);
-    window.addEventListener("session-extended", hide);
-    return () => window.removeEventListener("session-extended", hide);
-  }, []);
-
-  useEffect(() => {
-  if (seconds <= 0) return;
-  const i = setInterval(() => {
-    setSeconds((s) => {
-      console.log("⏱ Session countdown:", s);
-      return s - 1;
-    });
-  }, 1000);
-  return () => clearInterval(i);
-}, [seconds]);
-
+    if (seconds <= 0) return;
+    const interval = setInterval(() => setSeconds((s) => s - 1), 1000);
+    return () => clearInterval(interval);
+  }, [seconds]);
 
   if (seconds <= 0) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 card w-80">
+    <div className="fixed bottom-4 right-4 card w-80 p-4 shadow-lg bg-white dark:bg-gray-800">
       <p className="text-sm">
         Session expires in{" "}
         <b>
-          {Math.floor(seconds / 60)}:{seconds % 60}
+          {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, "0")}
         </b>
       </p>
-      <button onClick={extendSession} className="btn-primary mt-3 w-full">
+      <button
+        onClick={() => {
+          const storage = localStorage.getItem("refresh_token")
+            ? localStorage
+            : sessionStorage;
+          if (storage.getItem("refresh_token")) extendSession();
+        }}
+        className="btn-primary mt-3 w-full"
+      >
         Extend Session
       </button>
     </div>

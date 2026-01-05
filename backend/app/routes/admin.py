@@ -37,7 +37,7 @@ def register_admin():
 def seed_admin():
     existing = Admin.query.filter_by(email="admin@example.com").first()
     if existing:
-        token = create_access_token(identity=existing.id)
+        token = create_access_token(identity=str(existing.id))
         return jsonify({"message": "Admin already exists", "token": token}), 200
 
     new_admin = Admin(
@@ -47,7 +47,7 @@ def seed_admin():
     )
     db.session.add(new_admin)
     db.session.commit()
-    token = create_access_token(identity=new_admin.id)
+    token = create_access_token(identity=str(new_admin.id))
     return (
         jsonify(
             {
@@ -131,7 +131,7 @@ def add_course():
     if not all(field in data for field in required):
         return jsonify({"error": "Missing required fields"}), 400
 
-    admin_id = get_jwt_identity()
+    admin_id = int(get_jwt_identity())
     if not Admin.query.get(admin_id):
         return jsonify({"error": "Unauthorized"}), 403
 
@@ -153,7 +153,7 @@ def add_course():
 @admin_bp.route("/courses", methods=["GET"])
 @jwt_required()
 def get_all_courses():
-    admin_id = get_jwt_identity()
+    admin_id = int(get_jwt_identity())
     courses = (
         Course.query.filter_by(lecturer_id=admin_id)
         .order_by(Course.course_name.asc())
@@ -180,7 +180,7 @@ def get_all_courses():
 @admin_bp.route("/courses/<int:course_id>", methods=["DELETE"])
 @jwt_required()
 def delete_course(course_id):
-    admin_id = get_jwt_identity()
+    admin_id = int(get_jwt_identity())
     admin = Admin.query.get(admin_id)
     if not admin:
         return jsonify({"error": "Unauthorized"}), 403
@@ -201,7 +201,7 @@ def delete_course(course_id):
 @admin_bp.route("/location-code", methods=["GET", "POST"])
 @jwt_required()
 def location_code():
-    admin_id = get_jwt_identity()
+    admin_id = int(get_jwt_identity())
     if request.method == "GET":
         codes = SessionCode.query.order_by(SessionCode.created_at.desc()).all()
         return (
@@ -280,7 +280,7 @@ def create_course_session():
 @admin_bp.route("/me", methods=["GET"])
 @jwt_required()
 def get_profile():
-    admin_id = get_jwt_identity()
+    admin_id = int(get_jwt_identity())
     admin = Admin.query.get(admin_id)
     if not admin:
         return jsonify({"error": "Admin not found"}), 404
@@ -295,7 +295,7 @@ def get_profile():
 @admin_bp.route("/me", methods=["PUT"])
 @jwt_required()
 def update_profile():
-    admin_id = get_jwt_identity()
+    admin_id = int(get_jwt_identity())
     admin = Admin.query.get(admin_id)
     if not admin:
         return jsonify({"error": "Admin not found"}), 404
@@ -321,7 +321,7 @@ def update_profile():
 @admin_bp.route("/me", methods=["DELETE"])
 @jwt_required()
 def delete_admin():
-    admin_id = get_jwt_identity()
+    admin_id = int(get_jwt_identity())
     admin = Admin.query.get(admin_id)
     if not admin:
         return jsonify({"error": "Admin not found"}), 404
