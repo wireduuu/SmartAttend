@@ -11,22 +11,30 @@ export default function CountdownToast() {
   useEffect(() => {
     if (!user) return;
 
-    const showCountdown = () => {
+    const computeCountdown = () => {
       const expiresRaw =
         localStorage.getItem("expires_at") ||
         sessionStorage.getItem("expires_at");
+
       if (!expiresRaw) return;
 
       const expiresAtMs = Number(expiresRaw) * 1000;
-      const timeLeftSec = Math.max(
-        Math.floor((expiresAtMs - Date.now()) / 1000),
-        0
-      );
-      setSeconds(timeLeftSec);
+      const timeLeftSec = Math.floor((expiresAtMs - Date.now()) / 1000);
+
+      // Only show countdown if we're inside the warning window
+      if (timeLeftSec > 0 && timeLeftSec <= 10) {
+        setSeconds(timeLeftSec);
+      }
     };
 
-    window.addEventListener("session-warning", showCountdown);
-    return () => window.removeEventListener("session-warning", showCountdown);
+    // 🔹 Run immediately on mount (page refresh fix)
+    computeCountdown();
+
+    // 🔹 Still listen for future warning events
+    window.addEventListener("session-warning", computeCountdown);
+
+    return () =>
+      window.removeEventListener("session-warning", computeCountdown);
   }, [user]);
 
   /* -------------------------
