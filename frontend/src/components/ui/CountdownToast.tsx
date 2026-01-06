@@ -6,44 +6,66 @@ export default function CountdownToast() {
   const [seconds, setSeconds] = useState(0);
 
   /* -------------------------
-     Show countdown on session warning
+     Compute countdown from storage
+  ------------------------- */
+  const computeCountdown = () => {
+    const expiresRaw =
+      localStorage.getItem("expires_at") ||
+      sessionStorage.getItem("expires_at");
+
+    if (!expiresRaw) {
+      setSeconds(0);
+      return;
+    }
+
+    const expiresAtMs = Number(expiresRaw) * 1000;
+    const timeLeftSec = Math.floor((expiresAtMs - Date.now()) / 1000);
+
+    if (timeLeftSec > 0 && timeLeftSec <= 10) {
+      setSeconds(timeLeftSec);
+    } else {
+      setSeconds(0);
+    }
+  };
+
+  /* -------------------------
+     Initialize on mount & listen for session-warning events
+     Wrap initial setState in setTimeout to avoid sync warning
   ------------------------- */
   useEffect(() => {
     if (!user) return;
 
-    const computeCountdown = () => {
-      const expiresRaw =
-        localStorage.getItem("expires_at") ||
-        sessionStorage.getItem("expires_at");
-
-      if (!expiresRaw) return;
-
-      const expiresAtMs = Number(expiresRaw) * 1000;
-      const timeLeftSec = Math.floor((expiresAtMs - Date.now()) / 1000);
-
-      // Only show countdown if we're inside the warning window
-      if (timeLeftSec > 0 && timeLeftSec <= 10) {
-        setSeconds(timeLeftSec);
-      }
-    };
-
-    // 🔹 Run immediately on mount (page refresh fix)
-    computeCountdown();
-
-    // 🔹 Still listen for future warning events
+    const timeout = setTimeout(() => computeCountdown(), 0); // async
     window.addEventListener("session-warning", computeCountdown);
 
-    return () =>
+    return () => {
+      clearTimeout(timeout);
       window.removeEventListener("session-warning", computeCountdown);
+    };
   }, [user]);
 
   /* -------------------------
-     Hide countdown on session extend
+     Hide countdown on session extend & cross-tab sync
   ------------------------- */
   useEffect(() => {
     const hideCountdown = () => setSeconds(0);
     window.addEventListener("session-extended", hideCountdown);
-    return () => window.removeEventListener("session-extended", hideCountdown);
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "expires_at") {
+        computeCountdown();
+      }
+      if (event.key === "logout_marker") {
+        setSeconds(0);
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("session-extended", hideCountdown);
+      window.removeEventListener("storage", handleStorageChange);
+    };
   }, []);
 
   /* -------------------------

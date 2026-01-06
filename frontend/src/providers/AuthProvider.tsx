@@ -50,7 +50,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const profile = await getProfile();
           setUser(profile);
         } catch {
-          // try refreshing token if profile fetch fails
           await extendSession();
           const profile = await getProfile();
           setUser(profile);
@@ -67,6 +66,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   /* -------------------------
+     Listen for cross-tab events
+  ------------------------- */
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "logout_marker") {
+        // Another tab logged out
+        clearAuth();
+      }
+
+      if (event.key === "expires_at" && event.newValue) {
+        // Session extended in another tab
+        rescheduleFromStorage(event.newValue);
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
+  /* -------------------------
      Schedule session warning & expiry
   ------------------------- */
   const scheduleSession = (expiresAtMs: number) => {
@@ -77,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (timeLeft <= 0) {
       // Token already expired
-      logout(); // auto-logout
+      logout();
       return;
     }
 
@@ -89,9 +108,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Expiry handler
     expiryTimeout.current = window.setTimeout(() => {
-      // If user did not click "Extend", log them out
       logout();
     }, timeLeft);
+  };
+
+  // Reschedule session
+  const rescheduleFromStorage = (expiresRaw: string | null) => {
+    if (!expiresRaw) {
+      clearAuth();
+      return;
+    }
+
+    const expiresAtSec = Number(expiresRaw);
+    if (isNaN(expiresAtSec)) {
+      clearAuth();
+      return;
+    }
+
+    scheduleSession(expiresAtSec * 1000);
   };
 
   /* -------------------------
@@ -144,20 +178,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await logoutRequest();
     } catch {
-      // Ignore errors from expired token
+      // Ignore errors
     }
+
+    // Mark logout in localStorage for other tabs
+    localStorage.setItem("logout_marker", Date.now().toString());
     clearAuth();
   };
 
   // clear auth
   const clearAuth = () => {
     clearTimers();
+
     ["access_token", "refresh_token", "expires_at", "user"].forEach((key) => {
       localStorage.removeItem(key);
       sessionStorage.removeItem(key);
     });
+
     setUser(null);
-    window.dispatchEvent(new Event("session-extended")); // hide countdown if open
+    window.dispatchEvent(new Event("session-extended")); // hide countdown
   };
 
   return (
