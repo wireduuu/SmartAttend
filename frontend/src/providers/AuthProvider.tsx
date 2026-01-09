@@ -7,7 +7,11 @@ import {
   refreshToken,
 } from "../services/auth.service";
 import { AuthContext, type User } from "../context/AuthContext";
-import { SESSION_WARNING_SECONDS, IDLE_TIMEOUT_SECONDS, IDLE_WARNING_SECONDS, } from "../types/session";
+import {
+  SESSION_WARNING_SECONDS,
+  IDLE_TIMEOUT_SECONDS,
+  IDLE_WARNING_SECONDS,
+} from "../types/session";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -109,22 +113,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const events = ["mousemove", "keydown", "click", "touchstart"];
 
-    events.forEach((event) =>
-      window.addEventListener(event, resetIdle)
-    );
+    events.forEach((event) => window.addEventListener(event, resetIdle));
 
     // Start idle timers immediately on login
     scheduleIdleTimers();
 
     return () => {
-      events.forEach((event) =>
-        window.removeEventListener(event, resetIdle)
-      );
+      events.forEach((event) => window.removeEventListener(event, resetIdle));
       if (idleTimeout.current) clearTimeout(idleTimeout.current);
       if (idleWarningTimeout.current) clearTimeout(idleWarningTimeout.current);
     };
   }, [user]);
-
 
   /* -------------------------
      Schedule session warning & expiry
@@ -143,6 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Warning before expiry (SESSION_WARNING_SECONDS)
     const warningTime = Math.max(timeLeft - SESSION_WARNING_SECONDS * 1000, 0);
+
     warningTimeout.current = window.setTimeout(() => {
       window.dispatchEvent(new Event("session-warning"));
     }, warningTime);

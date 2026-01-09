@@ -20,16 +20,18 @@ export default function CountdownToast() {
     }
 
     const expiresAtMs = Number(expiresRaw) * 1000;
-    const timeLeftSec = Math.max(
-      Math.floor((expiresAtMs - Date.now()) / 1000),
-      0
-    );
+    const now = Date.now();
 
-    if (timeLeftSec > 0 && timeLeftSec <= SESSION_WARNING_SECONDS) {
-      setSeconds(timeLeftSec);
-    } else {
+    const warningStartMs = expiresAtMs - SESSION_WARNING_SECONDS * 1000;
+
+    // Only show countdown inside warning window
+    if (now < warningStartMs || now >= expiresAtMs) {
       setSeconds(0);
+      return;
     }
+
+    const remaining = Math.ceil((expiresAtMs - now) / 1000);
+    setSeconds(remaining);
   };
 
   /* -------------------------
