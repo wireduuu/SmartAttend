@@ -7,7 +7,7 @@ import {
   refreshToken,
 } from "../services/auth.service";
 import { AuthContext, type User } from "../context/AuthContext";
-import { SESSION_WARNING_SECONDS } from "../types/session";
+import { SESSION_WARNING_SECONDS, IDLE_TIMEOUT_SECONDS, IDLE_WARNING_SECONDS, } from "../types/session";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -15,6 +15,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const expiryTimeout = useRef<number | null>(null);
   const warningTimeout = useRef<number | null>(null);
+  const idleTimeout = useRef<number | null>(null);
+  const idleWarningTimeout = useRef<number | null>(null);
 
   /* -------------------------
      Clear timers helper
@@ -27,6 +29,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (warningTimeout.current) {
       clearTimeout(warningTimeout.current);
       warningTimeout.current = null;
+    }
+    if (idleTimeout.current) {
+      clearTimeout(idleTimeout.current);
+      idleTimeout.current = null;
+    }
+    if (idleWarningTimeout.current) {
+      clearTimeout(idleWarningTimeout.current);
+      idleWarningTimeout.current = null;
     }
   };
 
@@ -90,6 +100,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
+  useEffect(() => {
+    if (!user) return;
+
+    const resetIdle = () => {
+      scheduleIdleTimers();
+    };
+
+    const events = ["mousemove", "keydown", "click", "touchstart"];
+
+    events.forEach((event) =>
+      window.addEventListener(event, resetIdle)
+    );
+
+    // Start idle timers immediately on login
+    scheduleIdleTimers();
+
+    return () => {
+      events.forEach((event) =>
+        window.removeEventListener(event, resetIdle)
+      );
+      if (idleTimeout.current) clearTimeout(idleTimeout.current);
+      if (idleWarningTimeout.current) clearTimeout(idleWarningTimeout.current);
+    };
+  }, [user]);
+
+
   /* -------------------------
      Schedule session warning & expiry
   ------------------------- */
@@ -115,6 +151,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     expiryTimeout.current = window.setTimeout(() => {
       logout();
     }, timeLeft);
+  };
+
+  const scheduleIdleTimers = () => {
+    // Clear previous idle timers
+    if (idleTimeout.current) clearTimeout(idleTimeout.current);
+    if (idleWarningTimeout.current) clearTimeout(idleWarningTimeout.current);
+
+    // Warning before idle logout
+    idleWarningTimeout.current = window.setTimeout(() => {
+      window.dispatchEvent(new Event("idle-warning"));
+    }, IDLE_WARNING_SECONDS * 1000);
+
+    // Idle logout
+    idleTimeout.current = window.setTimeout(() => {
+      logout();
+    }, IDLE_TIMEOUT_SECONDS * 1000);
   };
 
   // Reschedule session
@@ -157,6 +209,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setUser(data.user);
     scheduleSession(data.access_exp * 1000);
+    scheduleIdleTimers();
   };
 
   const extendSession = async (): Promise<void> => {
@@ -170,6 +223,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       storage.setItem("expires_at", String(data.expires_at));
 
       scheduleSession(data.expires_at * 1000);
+      scheduleIdleTimers();
       window.dispatchEvent(new Event("session-extended"));
     } catch {
       clearAuth();
