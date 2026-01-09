@@ -7,6 +7,7 @@ import {
   refreshToken,
 } from "../services/auth.service";
 import { AuthContext, type User } from "../context/AuthContext";
+import { SESSION_WARNING_SECONDS } from "../types/session";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -75,7 +76,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         clearAuth();
       }
 
-      if (event.key === "expires_at" && event.newValue) {
+      if (
+        event.storageArea === localStorage &&
+        event.key === "expires_at" &&
+        event.newValue
+      ) {
         // Session extended in another tab
         rescheduleFromStorage(event.newValue);
       }
@@ -96,12 +101,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (timeLeft <= 0) {
       // Token already expired
-      logout();
+      clearAuth();
       return;
     }
 
-    // Warning 10 seconds before expiry
-    const warningTime = Math.max(timeLeft - 10 * 1000, 0);
+    // Warning before expiry (SESSION_WARNING_SECONDS)
+    const warningTime = Math.max(timeLeft - SESSION_WARNING_SECONDS * 1000, 0);
     warningTimeout.current = window.setTimeout(() => {
       window.dispatchEvent(new Event("session-warning"));
     }, warningTime);

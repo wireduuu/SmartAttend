@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
+import { SESSION_WARNING_SECONDS } from "../../types/session";
 
 export default function CountdownToast() {
   const { extendSession, user } = useAuth();
@@ -19,9 +20,12 @@ export default function CountdownToast() {
     }
 
     const expiresAtMs = Number(expiresRaw) * 1000;
-    const timeLeftSec = Math.floor((expiresAtMs - Date.now()) / 1000);
+    const timeLeftSec = Math.max(
+      Math.floor((expiresAtMs - Date.now()) / 1000),
+      0
+    );
 
-    if (timeLeftSec > 0 && timeLeftSec <= 10) {
+    if (timeLeftSec > 0 && timeLeftSec <= SESSION_WARNING_SECONDS) {
       setSeconds(timeLeftSec);
     } else {
       setSeconds(0);
@@ -53,7 +57,7 @@ export default function CountdownToast() {
 
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === "expires_at") {
-        computeCountdown();
+        setTimeout(computeCountdown, 0);
       }
       if (event.key === "logout_marker") {
         setSeconds(0);

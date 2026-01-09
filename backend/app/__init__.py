@@ -30,8 +30,8 @@ def create_app():
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         JWT_SECRET_KEY=os.getenv("JWT_SECRET_KEY", "myjwtsecret"),
         JWT_TOKEN_LOCATION=["headers"],
-        JWT_ACCESS_TOKEN_EXPIRES=timedelta(seconds=30),
-        JWT_REFRESH_TOKEN_EXPIRES=timedelta(minutes=2),
+        JWT_ACCESS_TOKEN_EXPIRES=timedelta(hours=1),
+        JWT_REFRESH_TOKEN_EXPIRES=timedelta(hours=1),
     )
 
     # Init extensions
